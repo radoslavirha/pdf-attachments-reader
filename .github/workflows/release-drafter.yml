@@ -36,10 +36,10 @@ jobs:
             app: pdf-extracter.exe
             asset_name: pdf-extracter-win-${{ needs.draft_release.outputs.tag_name }}.exe
             mime: application/zip
-          - os: macos-latest
-            app: pdf-extracter
-            asset_name: pdf-extracter-mac-${{ needs.draft_release.outputs.tag_name }}.app
-            mime: application/zip
+          # - os: macos-latest
+          #   app: pdf-extracter
+          #   asset_name: pdf-extracter-mac-${{ needs.draft_release.outputs.tag_name }}.app
+          #   mime: application/zip
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -60,3 +60,15 @@ jobs:
           asset_path: dist/${{ matrix.app }}
           asset_name: ${{ matrix.asset_name }}
           asset_content_type: ${{ matrix.mime }}
+
+  publish:
+    runs-on: ubuntu-latest
+    needs:
+      - draft_release
+      - build
+    steps:
+      - uses: eregon/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ needs.draft_release.outputs.id }}
