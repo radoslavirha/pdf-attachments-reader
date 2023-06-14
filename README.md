@@ -2,7 +2,7 @@
 
 It'll automatically create `attachments` folder in chosen directory (GUI)
 
-```
+```sh
 {chosen directory}
 ├── 1040020890_DSPSg_TZ_signed.pdf
 ├── 1040020890_DSPSg_KO-1.pdf
@@ -21,8 +21,10 @@ Python 3
 
 ## Install
 
-`pip3 install pyinstaller`
-`pip3 install -r requirements.txt`
+```sh
+pip3 install pyinstaller
+pip3 install -r requirements.txt
+```
 
 ## Build GUI
 
