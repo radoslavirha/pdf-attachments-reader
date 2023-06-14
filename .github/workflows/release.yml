@@ -18,11 +18,11 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            name: pdf-extracter-win.exe
-            asset_name: pdf-extracter.exe
+            app: pdf-extracter.exe
+            asset_name: pdf-extracter-win.exe
           - os: macos-latest
-            name: pdf-extracter-mac.app
-            asset_name: pdf-extracter.app
+            app: pdf-extracter.app
+            asset_name: pdf-extracter-mac.app
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -37,13 +37,13 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.asset_name }}
-          path: dist/${{ matrix.asset_name }}
+          path: dist/${{ matrix.app }}
   release:
     name: Release
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build.outputs.asset_name }}
