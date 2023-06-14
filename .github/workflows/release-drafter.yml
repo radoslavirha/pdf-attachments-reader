@@ -16,6 +16,7 @@ jobs:
       checks: write
     runs-on: ubuntu-latest
     outputs:
+      id: ${{ steps.drafter.outputs.id }}
       tag_name: ${{ steps.drafter.outputs.tag_name }}
       upload_url: ${{ steps.drafter.outputs.upload_url }}
     steps:
@@ -27,6 +28,7 @@ jobs:
     name: Build for ${{ matrix.os }}
     needs: draft_release
     runs-on: ${{ matrix.os }}
+    permissions: write-all
     strategy:
       matrix:
         include:
