@@ -35,12 +35,11 @@ jobs:
           - os: windows-latest
             app: pdf-extracter.exe
             asset_name: pdf-extracter-win-${{ needs.draft_release.outputs.tag_name }}.exe
-            # mime: application/vnd.microsoft.portable-executable
             mime: application/zip
-          # - os: macos-latest
-          #   app: pdf-extracter.app
-          #   asset_name: pdf-extracter-mac-${{ needs.draft_release.outputs.tag_name }}.app
-          #   mime: application/zip
+          - os: macos-latest
+            app: pdf-extracter.app
+            asset_name: pdf-extracter-mac-${{ needs.draft_release.outputs.tag_name }}.app
+            mime: application/zip
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
