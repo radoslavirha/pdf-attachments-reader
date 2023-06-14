@@ -37,7 +37,7 @@ jobs:
             asset_name: pdf-extracter-win-${{ needs.draft_release.outputs.tag_name }}.exe
             mime: application/zip
           - os: macos-latest
-            app: pdf-extracter.app
+            app: pdf-extracter
             asset_name: pdf-extracter-mac-${{ needs.draft_release.outputs.tag_name }}.app
             mime: application/zip
     steps:
