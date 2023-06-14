@@ -63,6 +63,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
+    permissions: write-all
     needs:
       - draft_release
       - build
