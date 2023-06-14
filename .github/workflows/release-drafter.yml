@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  draft_release_:
+  draft_release:
     permissions:
       contents: write
       pull-requests: write
@@ -21,6 +21,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build:
     name: Build for ${{ matrix.os }}
+    needs: draft_release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
