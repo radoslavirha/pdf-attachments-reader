@@ -51,15 +51,14 @@ print("Attachments folder: %s" % attachments)
 
 try:
     shutil.rmtree(attachments)
-except OSError:
-    print ("Deletion of attachments folder failed" % attachments)
-    exit()
+except:
+    print ("Deletion of attachments folder failed")
 else:
     print ("Attachments folder deleted")
 
 try:
     os.mkdir(attachments)
-except OSError:
+except:
     print ("Creation of attachments folder failed")
     exit()
 else:

@@ -16,7 +16,7 @@ It'll automatically create `attachments`
 
 `python3 reader.py {absolute path to directory with pdfs}`
 
-E.g. `python3 reader.py /Users/radoslavirha/Downloads/pdf`
+E.g. `python3 reader.py F:/pdf`
 
 ```
 {absolute path to directory with pdfs}
