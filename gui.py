@@ -90,6 +90,8 @@ def read_folder(directory):
     for pdf in pdfs:
       module_logger.info('Found pdf: ' + pdf)
       extract_attachments(pdf, attachments)
+    module_logger.info("Done!")
+    module_logger.info("--------------------------------------")
 
 def close():
     window.destroy()
