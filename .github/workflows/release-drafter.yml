@@ -28,10 +28,10 @@ jobs:
         include:
           - os: windows-latest
             app: pdf-extracter.exe
-            asset_name: pdf-extracter-win.exe
+            asset_name: pdf-extracter-win-${{ steps.draft_release.outputs.tag_name }}.exe
           - os: macos-latest
             app: pdf-extracter.app
-            asset_name: pdf-extracter-mac.app
+            asset_name: pdf-extracter-mac-${{ steps.draft_release.outputs.tag_name }}.app
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -42,17 +42,13 @@ jobs:
           pip3 install pyinstaller
           pip3 install -r requirements.txt
           pyinstaller --onefile --noconsole --clean --name pdf-extracter gui.py
-      - name: Upload app
-        uses: actions/upload-artifact@v3
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: ${{ matrix.asset_name }}
-          path: dist/${{ matrix.app }}
-  # release:
-  #   name: Release
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Download artifact
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: ${{ needs.build.outputs.asset_name }}
+          upload_url: ${{ steps.draft_release.outputs.upload_url }}
+          asset_path: dist/${{ matrix.app }}
+          asset_name: ${{ matrix.asset_name }}
+          asset_content_type: application/zip
