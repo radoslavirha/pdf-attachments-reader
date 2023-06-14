@@ -1,11 +1,9 @@
-import PyPDF2
-import sys
-import os
-import shutil
 from glob import glob
-
-directory = sys.argv[1]
-attachments = os.path.join(directory, 'attachments')
+from tkinter import filedialog
+import os
+import PyPDF2
+import shutil
+import tkinter as tk
 
 def extract_attachments(pdf_path, output_dir):
     '''
@@ -47,25 +45,46 @@ def extract_attachments(pdf_path, output_dir):
 def find_pdfs(dr, ext):
     return glob(os.path.join(dr,"*.{}".format(ext)))
 
-print("Attachments folder: %s" % attachments)
+def select_folder():
+    folder_path = filedialog.askdirectory()
+    if folder_path:
+        read_folder(folder_path)
 
-try:
-    shutil.rmtree(attachments)
-except:
-    print ("Deletion of attachments folder failed")
-else:
-    print ("Attachments folder deleted")
+def read_folder(directory):
+    print("Selected directory:", directory)
+    attachments = os.path.join(directory, 'attachments')
+    print("Attachments folder: %s" % attachments)
 
-try:
-    os.mkdir(attachments)
-except:
-    print ("Creation of attachments folder failed")
-    exit()
-else:
-    print ("Attachments folder created")
+    try:
+        shutil.rmtree(attachments)
+    except:
+        print ("Deletion of attachments folder failed")
+    else:
+        print ("Attachments folder deleted")
 
-pdfs = find_pdfs(directory, "pdf")
+    try:
+        os.mkdir(attachments)
+    except:
+        print ("Creation of attachments folder failed")
+        exit()
+    else:
+        print ("Attachments folder created")
 
-for pdf in pdfs:
-  print('Found pdf: ' + pdf)
-  extract_attachments(pdf, attachments)
+    pdfs = find_pdfs(directory, "pdf")
+
+    for pdf in pdfs:
+      print('Found pdf: ' + pdf)
+      extract_attachments(pdf, attachments)
+
+    window.destroy()
+
+# Create the main window
+window = tk.Tk()
+window.title('Extraktor příloh PDF')
+
+# Create a button to select the folder
+select_button = tk.Button(window, text="Vyberte složku s pdf soubory", command=select_folder)
+select_button.pack()
+
+# Start the main event loop
+window.mainloop()

@@ -1,25 +1,9 @@
 # pdf-reader
 
-## Prerequisites
-
-Python 3
-
-## Install
-
-`pip3 install -r requirements.txt`
-
-## Run script
-
-There should be only relevant pdfs in folder, otherwise it'll extract all the attachments from all the files.
-
-It'll automatically create `attachments`
-
-`python3 reader.py {absolute path to directory with pdfs}`
-
-E.g. `python3 reader.py F:/pdf`
+It'll automatically create `attachments` folder in chosen directory (GUI)
 
 ```
-{absolute path to directory with pdfs}
+{chosen directory}
 ├── 1040020890_DSPSg_TZ_signed.pdf
 ├── 1040020890_DSPSg_KO-1.pdf
 └── attachments (automatically created)
@@ -30,3 +14,26 @@ E.g. `python3 reader.py F:/pdf`
     ├── *.xml
     └── *.dgn
 ```
+
+## Prerequisites
+
+Python 3
+
+## Install
+
+`pip3 install pyinstaller`
+`pip3 install -r requirements.txt`
+
+## Build GUI
+
+### Linux/Mac
+
+`pyinstaller --onefile --noconsole gui.py`
+
+### Windows
+
+`python -m PyInstaller --onefile --noconsole gui.py`
+
+## Run as script
+
+`python3 gui.py`
