@@ -16,10 +16,11 @@ jobs:
       checks: write
     runs-on: ubuntu-latest
     outputs:
-      tag_name: ${{ steps.step1.outputs.tag_name }}
-      upload_url: ${{ steps.step1.outputs.upload_url }}
+      tag_name: ${{ steps.drafter.outputs.tag_name }}
+      upload_url: ${{ steps.drafter.outputs.upload_url }}
     steps:
       - uses: release-drafter/release-drafter@v5
+        id: drafter
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build:
