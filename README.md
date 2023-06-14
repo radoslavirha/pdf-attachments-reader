@@ -1,4 +1,4 @@
-# pdf-reader-roman
+# pdf-reader
 
 ## Prerequisites
 
