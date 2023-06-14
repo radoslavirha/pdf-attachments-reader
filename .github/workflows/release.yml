@@ -14,7 +14,6 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - run: python3 --version
       - run: pip3 install pyinstaller
-      - run: pip3 install -r requirements.
+      - run: pip3 install -r requirements.txt
       - run: pyinstaller --onefile --noconsole --clean --name pdf-extracter gui.py
