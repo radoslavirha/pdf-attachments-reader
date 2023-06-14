@@ -1,0 +1,91 @@
+name-template: 'Release $RESOLVED_VERSION'
+tag-template: '$RESOLVED_VERSION'
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'minor'
+  patch:
+    labels:
+      - 'patch'
+  default: patch
+categories:
+  - title: '⚠️ Breaking changes'
+    labels:
+      - 'breaking change'
+  - title: '🚀 Features'
+    labels:
+      - 'feature'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'bug'
+  - title: '📃 Documents'
+    labels:
+      - 'docs'
+  - title: '✅ Tests'
+    labels:
+      - 'test'
+  - title: '🧩 Dependency Updates'
+    labels:
+      - 'deps'
+      - 'dependencies'
+      - 'bump'
+    collapse-after: 5
+  - title: '🔬 Others'
+    labels:
+      - 'style'
+      - 'refactor'
+      - 'test'
+      - 'ci'
+      - 'chore'
+    collapse-after: 5
+autolabeler:
+  - label: 'major'
+    title:
+      - '/!:/i'
+  - label: 'minor'
+    title:
+      - '/feat:/i'
+      - '/refactor:/i'
+  - label: 'breaking change'
+    title:
+      - '/!:/i'
+  - label: 'feature'
+    title:
+      - '/feat:/i'
+  - label: 'bug'
+    title:
+      - '/fix:/i'
+  - label: 'style'
+    title:
+      - '/style:/i'
+  - label: 'refactor'
+    title:
+      - '/refactor:/i'
+  - label: 'chore'
+    title:
+      - '/chore:/i'
+  - label: 'docs'
+    title:
+      - '/docs:/i'
+  - label: 'ci'
+    title:
+      - '/ci:/i'
+  - label: 'test'
+    title:
+      - '/test:/i'
+  - label: 'dependencies'
+    title:
+      - '/deps:/i'
+      - '/dependencies:/i'
+      - '/bump:/i'
+      - '/build:/i'
+commitish: main
+template: |
+  ## What’s Changed
+
+  $CHANGES
