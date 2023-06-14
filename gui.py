@@ -1,9 +1,24 @@
 from glob import glob
 from tkinter import filedialog
+import logging
 import os
 import PyPDF2
 import shutil
 import tkinter as tk
+
+module_logger = logging.getLogger(__name__)
+
+class TextHandler(logging.StreamHandler):
+    def __init__(self, textctrl):
+        logging.StreamHandler.__init__(self) # initialize parent
+        self.textctrl = textctrl
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.textctrl.config(state="normal")
+        self.textctrl.insert("end", msg + "\n")
+        self.flush()
+        self.textctrl.config(state="disabled")
 
 def extract_attachments(pdf_path, output_dir):
     '''
@@ -38,7 +53,7 @@ def extract_attachments(pdf_path, output_dir):
                     fileobj = annotobj['/FS']
                     attachments[fileobj['/F']] = fileobj['/EF']['/F'].get_data()
     for fName, fData in attachments.items():
-      print ("Saving attachment: %s" % fName)
+      module_logger.info(f"Saving attachment: {fName}")
       with open(os.path.join(output_dir, fName), 'wb') as outfile:
         outfile.write(fData)
 
@@ -51,40 +66,54 @@ def select_folder():
         read_folder(folder_path)
 
 def read_folder(directory):
-    print("Selected directory:", directory)
+    module_logger.info(f"Selected directory: {directory}")
     attachments = os.path.join(directory, 'attachments')
-    print("Attachments folder: %s" % attachments)
+    module_logger.info(f"Attachments folder: {attachments}")
 
     try:
         shutil.rmtree(attachments)
     except:
-        print ("Deletion of attachments folder failed")
+        module_logger.info("Deletion of attachments folder failed")
     else:
-        print ("Attachments folder deleted")
+        module_logger.info("Attachments folder deleted")
 
     try:
         os.mkdir(attachments)
     except:
-        print ("Creation of attachments folder failed")
+        module_logger.info("Creation of attachments folder failed")
         exit()
     else:
-        print ("Attachments folder created")
+        module_logger.info("Attachments folder created")
 
     pdfs = find_pdfs(directory, "pdf")
 
     for pdf in pdfs:
-      print('Found pdf: ' + pdf)
+      module_logger.info('Found pdf: ' + pdf)
       extract_attachments(pdf, attachments)
 
+def close():
     window.destroy()
 
-# Create the main window
-window = tk.Tk()
-window.title('Extraktor příloh PDF')
+if __name__ == "__main__":
+    # Create the main window
+    window = tk.Tk()
+    window.title('Extraktor příloh PDF')
 
-# Create a button to select the folder
-select_button = tk.Button(window, text="Vyberte složku s pdf soubory", command=select_folder)
-select_button.pack()
+    # Create a button to select the folder
+    select_button = tk.Button(window, text="Vyberte složku s pdf soubory", command=select_folder)
+    select_button.grid(column=0, row=1)
 
-# Start the main event loop
-window.mainloop()
+    mytext = tk.Text(window, state="disabled")
+    mytext.grid(column=0, row=2)
+
+    close_button = tk.Button(window, text="Zavřít", command=close)
+    close_button.grid(column=0, row=3)
+
+    stderrHandler = logging.StreamHandler()  # no arguments => stderr
+    module_logger.addHandler(stderrHandler)
+    guiHandler = TextHandler(mytext)
+    module_logger.addHandler(guiHandler)
+    module_logger.setLevel(logging.INFO)   
+
+    # Start the main event loop
+    window.mainloop()
