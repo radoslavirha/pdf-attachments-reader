@@ -17,22 +17,33 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            # artifact_name: mything
-            # asset_name: mything-linux-amd64
           - os: windows-latest
-            # artifact_name: mything.exe
-            # asset_name: mything-windows-amd64
+            name: pdf-extracter-win.exe
+            asset_name: pdf-extracter.exe
           - os: macos-latest
-            # artifact_name: mything
-            # asset_name: mything-macos-amd64
+            name: pdf-extracter-mac.app
+            asset_name: pdf-extracter.app
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - run: |
+      - name: Build
+        run: |
           pip3 install pyinstaller
           pip3 install -r requirements.txt
           pyinstaller --onefile --noconsole --clean --name pdf-extracter gui.py
-          ls dist
+      - name: Upload app
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}
+          path: dist/${{ matrix.asset_name }}
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.build.outputs.asset_name }}
