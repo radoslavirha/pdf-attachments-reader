@@ -3,8 +3,8 @@ name: Release Drafter
 on:
   workflow_dispatch:
   push:
-    # branches:
-    #   - main
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -33,10 +33,10 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: windows-latest
-          #   app_build: pdf-extracter.exe
-          #   asset_name: pdf-extracter-win-${{ needs.draft_release.outputs.tag_name }}.exe
-          #   mime: application/zip
+          - os: windows-latest
+            app_build: pdf-extracter.exe
+            asset_name: pdf-extracter-win-${{ needs.draft_release.outputs.tag_name }}.exe
+            mime: application/zip
           - os: macos-latest
             app_build: pdf-extracter.dmg
             asset_name: pdf-extracter-mac-${{ needs.draft_release.outputs.tag_name }}.dmg
@@ -59,7 +59,7 @@ jobs:
           rm -rf dist/dmg/*
           cp -r dist/pdf-extracter.app dist/dmg
           rm -rf dist/pdf-extracter.dmg
-          create-dmg --volname "Extraktor příloh PDF" --app-drop-link 425 120 --no-internet-enable "dist/pdf-extracter.dmg" "dist/dmg/"
+          create-dmg --app-drop-link 425 120 --no-internet-enable "dist/pdf-extracter.dmg" "dist/dmg/"
       - name: Upload Release Asset
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
@@ -71,15 +71,15 @@ jobs:
           asset_name: ${{ matrix.asset_name }}
           asset_content_type: ${{ matrix.mime }}
 
-  # publish:
-  #   runs-on: ubuntu-latest
-  #   permissions: write-all
-  #   needs:
-  #     - draft_release
-  #     - build
-  #   steps:
-  #     - uses: eregon/publish-release@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         release_id: ${{ needs.draft_release.outputs.id }}
+  publish:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    needs:
+      - draft_release
+      - build
+    steps:
+      - uses: eregon/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ needs.draft_release.outputs.id }}
