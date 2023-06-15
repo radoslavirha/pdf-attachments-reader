@@ -38,7 +38,7 @@ jobs:
           #   asset_name: pdf-extracter-win-${{ needs.draft_release.outputs.tag_name }}.exe
           #   mime: application/zip
           - os: macos-latest
-            app_build: pdf-extracter
+            app_build: pdf-extracter.app
             asset_name: pdf-extracter-mac-${{ needs.draft_release.outputs.tag_name }}.app
             mime: application/zip
     steps:
@@ -52,7 +52,6 @@ jobs:
           pip3 install pyinstaller
           pip3 install -r requirements.txt
           pyinstaller --onefile --noconsole --clean --name pdf-extracter gui.py
-          rm -rf dist/pdf-extracter.app
           ls dist
       - name: Upload Release Asset
         id: upload-release-asset 
