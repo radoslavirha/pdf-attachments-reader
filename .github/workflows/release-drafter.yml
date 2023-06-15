@@ -34,11 +34,11 @@ jobs:
       matrix:
         include:
           # - os: windows-latest
-          #   app: pdf-extracter.exe
+          #   app_build: pdf-extracter.exe
           #   asset_name: pdf-extracter-win-${{ needs.draft_release.outputs.tag_name }}.exe
           #   mime: application/zip
           - os: macos-latest
-            app: pdf-extracter
+            app_build: pdf-extracter
             asset_name: pdf-extracter-mac-${{ needs.draft_release.outputs.tag_name }}.app
             mime: application/zip
     steps:
@@ -47,10 +47,12 @@ jobs:
         with:
           python-version: '3.11'
       - name: Build
+        # remove unused mac files below
         run: |
           pip3 install pyinstaller
           pip3 install -r requirements.txt
           pyinstaller --onefile --noconsole --clean --name pdf-extracter gui.py
+          rm -rf dist/pdf-extracter.app
           ls dist
       - name: Upload Release Asset
         id: upload-release-asset 
@@ -59,7 +61,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.draft_release.outputs.upload_url }}
-          asset_path: dist/${{ matrix.app }}
+          asset_path: dist/${{ matrix.app_build }}
           asset_name: ${{ matrix.asset_name }}
           asset_content_type: ${{ matrix.mime }}
 
