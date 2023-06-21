@@ -1,4 +1,4 @@
-# pdf-reader
+# PDF attachments reader
 
 It'll automatically create `attachments` folder in chosen directory (GUI)
 
