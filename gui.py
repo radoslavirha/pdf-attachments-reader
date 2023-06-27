@@ -1,6 +1,5 @@
 from fpdf import FPDF
 from glob import glob
-from pypdf import PdfWriter
 from tkinter import filedialog
 import logging
 import os
@@ -46,7 +45,7 @@ def merge_attachments(attachments_list, directory):
 
     filtered_attachmentsList = filter_attachments(attachments_list)
 
-    merger = PdfWriter()
+    merger = PyPDF2.PdfWriter()
 
     try:
         for attachment in filtered_attachmentsList:
