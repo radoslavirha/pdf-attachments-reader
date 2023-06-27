@@ -1,7 +1,8 @@
+from docx import Document
+from docx2pdf import convert
 from fpdf import FPDF
 from glob import glob
 from tkinter import filedialog
-from unidecode import unidecode
 import logging
 import os
 import PyPDF2
@@ -12,11 +13,18 @@ import locale
 
 module_logger = logging.getLogger(__name__)
 
+attachments_directory = 'attachments_temp'
+
 merge_attachments_list = [
     r'.*_DSPSg_TZ_K_signed\.pdf$',
     r'.*_DSPSg_SS_signed\.pdf$',
     r'.*_DSPSg_POP\.txt$',
     r'.*_DSPSg_TISK1.*signed\.pdf$'
+]
+
+pull_attachments_list = [
+    r'.*_DSPSg_POP\.txt$',
+    r'.*_DSPSg_SS\.txt$'
 ]
 
 class TextHandler(logging.StreamHandler):
@@ -31,20 +39,45 @@ class TextHandler(logging.StreamHandler):
         self.flush()
         self.textctrl.config(state='disabled')
 
-def filter_attachments(attachments_list):
+def rm_attachments_dir(directory):
+    try:
+        shutil.rmtree(directory)
+    except:
+        module_logger.info('Deletion of attachments folder failed!')
+    else:
+        module_logger.info('Attachments folder deleted')
+
+def filter_attachments(attachments_list, patterns):
     filtered = []
 
-    for pattern in merge_attachments_list:
+    for pattern in patterns:
         filter_list = list(filter(lambda x: re.search(pattern, x), attachments_list))
         if len(filter_list) > 0:
             filtered.extend(filter_list)
 
     return filtered
 
+def convert_txt_to_pdf(attachment):
+    try:
+        module_logger.info(f'Converting txt attachment to pdf: {attachment}')
+        document = Document()
+        txt = open(attachment, 'rb').read().decode('Windows-1250')
+        document.add_paragraph(txt)
+        docx_file = attachment.replace('.txt', '.docx')
+        pdf_file = attachment.replace('.txt', '.pdf')
+        module_logger.info(f'Creating temporary .docx: {docx_file}')
+        document.save(docx_file)
+        module_logger.info(f'Converting .docx to: {pdf_file}')
+        convert(docx_file, pdf_file)
+        return pdf_file
+    except Exception as e:
+        module_logger.info('Converting .txt to .pdf failed!')
+        module_logger.info(e)
+
 def merge_attachments(attachments_list, directory):
     module_logger.info(f'Merging attachments...')
 
-    filtered_attachmentsList = filter_attachments(attachments_list)
+    filtered_attachmentsList = filter_attachments(attachments_list, merge_attachments_list)
 
     merger = PyPDF2.PdfWriter()
 
@@ -55,17 +88,8 @@ def merge_attachments(attachments_list, directory):
             if attachment.endswith('.pdf'):
                 merger.append(open(attachment, 'rb'))
             elif attachment.endswith('.txt'):
-                module_logger.info(f'Converting txt attachment to pdf: {attachment}')
-                pdf = FPDF()
-                pdf.add_page()
-                pdf.set_font('helvetica', size=12)
-                txt = open(attachment, 'rb')
-                # unidecode solves missing Unicode fonts in FPDF
-                # don't know how to bundle fonts to .exe/.dmg
-                pdf.write(txt = unidecode(txt.read().decode('ISO 8859-2')))
-                converted_txt = attachment.replace('.txt', '.pdf')
-                pdf.output(converted_txt)
-                merger.append(open(converted_txt, 'rb'))
+                pdf = convert_txt_to_pdf(attachment)
+                merger.append(open(pdf, 'rb'))
 
         # Write to an output PDF document
         dsps = os.path.join(directory, 'dsps.pdf')
@@ -78,6 +102,24 @@ def merge_attachments(attachments_list, directory):
         output.close()
     except Exception as e:
         module_logger.info('Merging attachments failed!')
+        module_logger.info(e)
+
+def pull_attachments(attachments_list, directory):
+    module_logger.info(f'Pulling out attachments...')
+
+    filtered_attachmentsList = filter_attachments(attachments_list, pull_attachments_list)
+    
+    try:
+        for attachment in filtered_attachmentsList:
+            module_logger.info(f'Found attachment for pulling out: {attachment}')
+            newPath = attachment.replace('/'+ attachments_directory, '')
+            module_logger.info(f'Copying attachment to: {newPath}')
+            shutil.copyfile(attachment, newPath)
+            xyz = newPath.replace('.txt', '.xyz')
+            module_logger.info(f'Copying attachment to: {xyz}')
+            shutil.copyfile(newPath, xyz)
+    except Exception as e:
+        module_logger.info('Pulling attachments failed!')
         module_logger.info(e)
 
 def extract_attachments(pdf_path, output_dir):
@@ -132,15 +174,10 @@ def select_folder():
 
 def read_folder(directory):
     module_logger.info(f'Selected directory: {directory}')
-    attachmentsPath = os.path.join(directory, 'attachments')
+    attachmentsPath = os.path.join(directory, attachments_directory)
     module_logger.info(f'Attachments folder: {attachmentsPath}')
 
-    try:
-        shutil.rmtree(attachmentsPath)
-    except:
-        module_logger.info('Deletion of attachments folder failed!')
-    else:
-        module_logger.info('Attachments folder deleted')
+    rm_attachments_dir(attachmentsPath)
 
     try:
         os.mkdir(attachmentsPath)
@@ -159,6 +196,8 @@ def read_folder(directory):
       attachments_list.extend(extract_attachments(pdf, attachmentsPath))
 
     merge_attachments(attachments_list, directory)
+    pull_attachments(attachments_list, directory)
+    rm_attachments_dir(attachmentsPath)
 
     module_logger.info('Done!')
     module_logger.info('--------------------------------------')
