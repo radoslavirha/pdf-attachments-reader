@@ -3,7 +3,6 @@ from glob import glob
 from tkinter import filedialog
 import logging
 import os
-import pdfkit
 import pypdf
 import re
 import shutil
