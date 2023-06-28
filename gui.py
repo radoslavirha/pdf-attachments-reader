@@ -114,14 +114,6 @@ def filter_attachments(attachments_list, patterns):
 
     return filtered
 
-def find_font_dir():
-    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-        module_logger.info('Running in a PyInstaller bundle')
-        fontPath = os.path.join(sys._MEIPASS, fontPath)
-        module_logger.info(f'Font path: {fontPath}')
-    else:
-        module_logger.info('Running in a normal Python process')
-
 def find_pdfs(dr, ext):
     return glob(os.path.join(dr,'*.{}'.format(ext)))
 
@@ -239,7 +231,12 @@ def select_folder():
 if __name__ == '__main__':
     init_gui()
 
-    find_font_dir()
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        module_logger.info('Running in a PyInstaller bundle')
+        fontPath = os.path.join(sys._MEIPASS, fontPath)
+        module_logger.info(f'Font path: {fontPath}')
+    else:
+        module_logger.info('Running in a normal Python process')
 
     # Start the main event loop
     window.mainloop()
