@@ -119,19 +119,31 @@ def find_pdfs(dr, ext):
 
 def init_gui():
     window.title('Extraktor příloh PDF')
-    # Create a button to select the folder
-    select_button = tk.Button(window, text='Vyberte složku s pdf soubory', command=select_folder)
-    select_button.grid(column=0, row=1)
 
-    mytext = tk.Text(window, state='disabled')
-    mytext.grid(column=0, row=2)
+    logs_frame = tk.LabelFrame(window, text="Logy", padx=5, pady=5)
+    logs_frame.grid(row=1, column=0, columnspan=3, padx=10, pady=10, sticky=tk.E+tk.W+tk.N+tk.S)
+    buttons_frame = tk.Frame(window, padx=5, pady=5)
+    buttons_frame.grid(row=0, column=0, sticky=tk.E+tk.W)
 
-    close_button = tk.Button(window, text='Zavřít', command=close_gui)
-    close_button.grid(column=0, row=3)
+    logs_frame.rowconfigure(0, weight=1)
+    logs_frame.columnconfigure(0, weight=1)
+    buttons_frame.rowconfigure(0, weight=1)
+    buttons_frame.columnconfigure(0, weight=1)
 
-    stderrHandler = logging.StreamHandler()  # no arguments => stderr
+    logbox = tk.Text(logs_frame, width=40, height=10)
+    logbox.grid(row=0, column=0, sticky=tk.E+tk.W+tk.N+tk.S)
+
+    select_button = tk.Button(buttons_frame, text='Vyberte složku s pdf soubory', command=select_folder)
+    select_button.grid(column=0, row=1, padx=(10), pady=10)
+    close_button = tk.Button(buttons_frame, text='Zavřít', command=close_gui)
+    close_button.grid(column=1, row=1, padx=(10), pady=10)
+
+    window.columnconfigure(0, weight=1)
+    window.rowconfigure(1, weight=1)
+
+    stderrHandler = logging.StreamHandler()
     module_logger.addHandler(stderrHandler)
-    guiHandler = TextHandler(mytext)
+    guiHandler = TextHandler(logbox)
     module_logger.addHandler(guiHandler)
     module_logger.setLevel(logging.INFO)
 
