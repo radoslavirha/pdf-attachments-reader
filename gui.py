@@ -1,19 +1,17 @@
-from docx import Document
-from docx2pdf import convert
 from fpdf import FPDF
 from glob import glob
 from tkinter import filedialog
 import logging
 import os
-import PyPDF2
+import pdfkit
+import pypdf
 import re
 import shutil
 import tkinter as tk
-import locale
 
 module_logger = logging.getLogger(__name__)
 
-attachments_directory = 'attachments_temp'
+attachments_directory = 'attachments'
 
 merge_attachments_list = [
     r'.*_DSPSg_TZ_K_signed\.pdf$',
@@ -60,15 +58,16 @@ def filter_attachments(attachments_list, patterns):
 def convert_txt_to_pdf(attachment):
     try:
         module_logger.info(f'Converting txt attachment to pdf: {attachment}')
-        document = Document()
         txt = open(attachment, 'rb').read().decode('Windows-1250')
-        document.add_paragraph(txt)
-        docx_file = attachment.replace('.txt', '.docx')
+
         pdf_file = attachment.replace('.txt', '.pdf')
-        module_logger.info(f'Creating temporary .docx: {docx_file}')
-        document.save(docx_file)
-        module_logger.info(f'Converting .docx to: {pdf_file}')
-        convert(docx_file, pdf_file)
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.add_font('DejaVu', '', os.path.join(os.path.dirname(os.path.abspath(__file__)) + '/font/', 'DejaVuSans.ttf'), uni=True)
+        pdf.set_font('DejaVu', '', 10)
+        pdf.write(8, txt.replace('\t', '    '))
+        pdf.output(pdf_file)
+
         return pdf_file
     except Exception as e:
         module_logger.info('Converting .txt to .pdf failed!')
@@ -79,7 +78,7 @@ def merge_attachments(attachments_list, directory):
 
     filtered_attachmentsList = filter_attachments(attachments_list, merge_attachments_list)
 
-    merger = PyPDF2.PdfWriter()
+    merger = pypdf.PdfWriter()
 
     try:
         for attachment in filtered_attachmentsList:
@@ -112,7 +111,9 @@ def pull_attachments(attachments_list, directory):
     try:
         for attachment in filtered_attachmentsList:
             module_logger.info(f'Found attachment for pulling out: {attachment}')
-            newPath = attachment.replace('/'+ attachments_directory, '')
+            newDir = os.path.dirname(attachment).replace(attachments_directory, '')
+            attachmentFile = os.path.basename(attachment)
+            newPath = os.path.join(newDir, attachmentFile)
             module_logger.info(f'Copying attachment to: {newPath}')
             shutil.copyfile(attachment, newPath)
             xyz = newPath.replace('.txt', '.xyz')
@@ -129,7 +130,7 @@ def extract_attachments(pdf_path, output_dir):
 
     :return: dictionary of filenames and bytestrings
     '''
-    reader = PyPDF2.PdfReader(pdf_path)
+    reader = pypdf.PdfReader(pdf_path)
     attachments = {}
     attachments_list = []
     #First, get those that are pdf attachments
@@ -197,7 +198,7 @@ def read_folder(directory):
 
     merge_attachments(attachments_list, directory)
     pull_attachments(attachments_list, directory)
-    rm_attachments_dir(attachmentsPath)
+    # rm_attachments_dir(attachmentsPath)
 
     module_logger.info('Done!')
     module_logger.info('--------------------------------------')

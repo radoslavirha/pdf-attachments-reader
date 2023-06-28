@@ -30,11 +30,11 @@ pip3 install -r requirements.txt
 
 ### Linux/Mac
 
-`pyinstaller --onefile --noconsole --clean --name pdf-extracter gui.py`
+`pyinstaller --onefile --noconsole --clean --add-data 'font:font' --name pdf-extracter gui.py`
 
 ### Windows
 
-`python -m PyInstaller --onefile --noconsole --clean --name pdf-extracter gui.py`
+`python -m PyInstaller --onefile --noconsole --clean --add-data 'font;font' --name pdf-extracter gui.py`
 
 ## Run as script
 
