@@ -9,16 +9,12 @@ import shutil
 import sys
 import tkinter as tk
 
+window = tk.Tk()
+
 module_logger = logging.getLogger(__name__)
 
 attachments_directory = 'attachments'
 fontPath = os.path.join('font/', 'DejaVuSans.ttf')
-
-if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    print('Running in a PyInstaller bundle')
-    fontPath = os.path.join(sys._MEIPASS, fontPath)
-else:
-    print('Running in a normal Python process')
 
 merge_attachments_list = [
     r'.*_DSPSg_TZ_K_signed\.pdf$',
@@ -44,23 +40,8 @@ class TextHandler(logging.StreamHandler):
         self.flush()
         self.textctrl.config(state='disabled')
 
-def rm_attachments_dir(directory):
-    try:
-        shutil.rmtree(directory)
-    except:
-        module_logger.info('Deletion of attachments folder failed!')
-    else:
-        module_logger.info('Attachments folder deleted')
-
-def filter_attachments(attachments_list, patterns):
-    filtered = []
-
-    for pattern in patterns:
-        filter_list = list(filter(lambda x: re.search(pattern, x), attachments_list))
-        if len(filter_list) > 0:
-            filtered.extend(filter_list)
-
-    return filtered
+def close():
+    window.destroy()
 
 def convert_txt_to_pdf(attachment):
     try:
@@ -80,6 +61,87 @@ def convert_txt_to_pdf(attachment):
     except Exception as e:
         module_logger.info('Converting .txt to .pdf failed!')
         module_logger.info(e)
+
+def extract_attachments(pdf_path, output_dir):
+    '''
+    Retrieves the file attachments of the PDF as a dictionary of file names
+    and the file data as a bytestring.
+
+    :return: dictionary of filenames and bytestrings
+    '''
+    reader = pypdf.PdfReader(pdf_path)
+    attachments = {}
+    attachments_list = []
+    #First, get those that are pdf attachments
+    catalog = reader.trailer['/Root']
+    if '/Names' in catalog:
+      if '/EmbeddedFiles' in catalog['/Names']:
+          fileNames = catalog['/Names']['/EmbeddedFiles']['/Names']
+          for f in fileNames:
+              if isinstance(f, str):
+                  name = f
+                  dataIndex = fileNames.index(f) + 1
+                  fDict = fileNames[dataIndex].getObject()
+                  fData = fDict['/EF']['/F'].getData()
+                  attachments[name] = fData
+
+    # #Next, go through all pages and all annotations to those pages
+    # #to find any attached files
+    for pagenum in range(0, len(reader.pages)):
+        page_object = reader.pages[pagenum]
+        if '/Annots' in page_object:
+            for annot in page_object['/Annots']:
+                annotobj = annot.get_object()
+                if annotobj['/Subtype'] == '/FileAttachment':
+                    fileobj = annotobj['/FS']
+                    attachments[fileobj['/F']] = fileobj['/EF']['/F'].get_data()
+    for fName, fData in attachments.items():
+      attachmentPath = os.path.join(output_dir, fName)
+      attachments_list.append(attachmentPath)
+      module_logger.info(f'Saving attachment: {fName}')
+      with open(attachmentPath, 'wb') as outfile:
+        outfile.write(fData)
+
+    return attachments_list
+
+def filter_attachments(attachments_list, patterns):
+    filtered = []
+
+    for pattern in patterns:
+        filter_list = list(filter(lambda x: re.search(pattern, x), attachments_list))
+        if len(filter_list) > 0:
+            filtered.extend(filter_list)
+
+    return filtered
+
+def find_font_dir():
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        module_logger.info('Running in a PyInstaller bundle')
+        fontPath = os.path.join(sys._MEIPASS, fontPath)
+        module_logger.info(f'Font path: {fontPath}')
+    else:
+        module_logger.info('Running in a normal Python process')
+
+def find_pdfs(dr, ext):
+    return glob(os.path.join(dr,'*.{}'.format(ext)))
+
+def init_gui():
+    window.title('Extraktor příloh PDF')
+    # Create a button to select the folder
+    select_button = tk.Button(window, text='Vyberte složku s pdf soubory', command=select_folder)
+    select_button.grid(column=0, row=1)
+
+    mytext = tk.Text(window, state='disabled')
+    mytext.grid(column=0, row=2)
+
+    close_button = tk.Button(window, text='Zavřít', command=close)
+    close_button.grid(column=0, row=3)
+
+    stderrHandler = logging.StreamHandler()  # no arguments => stderr
+    module_logger.addHandler(stderrHandler)
+    guiHandler = TextHandler(mytext)
+    module_logger.addHandler(guiHandler)
+    module_logger.setLevel(logging.INFO)
 
 def merge_attachments(attachments_list, directory):
     module_logger.info(f'Merging attachments...')
@@ -131,56 +193,6 @@ def pull_attachments(attachments_list, directory):
         module_logger.info('Pulling attachments failed!')
         module_logger.info(e)
 
-def extract_attachments(pdf_path, output_dir):
-    '''
-    Retrieves the file attachments of the PDF as a dictionary of file names
-    and the file data as a bytestring.
-
-    :return: dictionary of filenames and bytestrings
-    '''
-    reader = pypdf.PdfReader(pdf_path)
-    attachments = {}
-    attachments_list = []
-    #First, get those that are pdf attachments
-    catalog = reader.trailer['/Root']
-    if '/Names' in catalog:
-      if '/EmbeddedFiles' in catalog['/Names']:
-          fileNames = catalog['/Names']['/EmbeddedFiles']['/Names']
-          for f in fileNames:
-              if isinstance(f, str):
-                  name = f
-                  dataIndex = fileNames.index(f) + 1
-                  fDict = fileNames[dataIndex].getObject()
-                  fData = fDict['/EF']['/F'].getData()
-                  attachments[name] = fData
-
-    # #Next, go through all pages and all annotations to those pages
-    # #to find any attached files
-    for pagenum in range(0, len(reader.pages)):
-        page_object = reader.pages[pagenum]
-        if '/Annots' in page_object:
-            for annot in page_object['/Annots']:
-                annotobj = annot.get_object()
-                if annotobj['/Subtype'] == '/FileAttachment':
-                    fileobj = annotobj['/FS']
-                    attachments[fileobj['/F']] = fileobj['/EF']['/F'].get_data()
-    for fName, fData in attachments.items():
-      attachmentPath = os.path.join(output_dir, fName)
-      attachments_list.append(attachmentPath)
-      module_logger.info(f'Saving attachment: {fName}')
-      with open(attachmentPath, 'wb') as outfile:
-        outfile.write(fData)
-
-    return attachments_list
-
-def find_pdfs(dr, ext):
-    return glob(os.path.join(dr,'*.{}'.format(ext)))
-
-def select_folder():
-    folder_path = filedialog.askdirectory()
-    if folder_path:
-        read_folder(folder_path)
-
 def read_folder(directory):
     module_logger.info(f'Selected directory: {directory}')
     attachmentsPath = os.path.join(directory, attachments_directory)
@@ -211,29 +223,23 @@ def read_folder(directory):
     module_logger.info('Done!')
     module_logger.info('--------------------------------------')
 
-def close():
-    window.destroy()
+def rm_attachments_dir(directory):
+    try:
+        shutil.rmtree(directory)
+    except:
+        module_logger.info('Deletion of attachments folder failed!')
+    else:
+        module_logger.info('Attachments folder deleted')
+
+def select_folder():
+    folder_path = filedialog.askdirectory()
+    if folder_path:
+        read_folder(folder_path)
 
 if __name__ == '__main__':
-    # Create the main window
-    window = tk.Tk()
-    window.title('Extraktor příloh PDF')
+    init_gui()
 
-    # Create a button to select the folder
-    select_button = tk.Button(window, text='Vyberte složku s pdf soubory', command=select_folder)
-    select_button.grid(column=0, row=1)
-
-    mytext = tk.Text(window, state='disabled')
-    mytext.grid(column=0, row=2)
-
-    close_button = tk.Button(window, text='Zavřít', command=close)
-    close_button.grid(column=0, row=3)
-
-    stderrHandler = logging.StreamHandler()  # no arguments => stderr
-    module_logger.addHandler(stderrHandler)
-    guiHandler = TextHandler(mytext)
-    module_logger.addHandler(guiHandler)
-    module_logger.setLevel(logging.INFO)   
+    find_font_dir()
 
     # Start the main event loop
     window.mainloop()
