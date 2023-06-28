@@ -2,3 +2,4 @@ build
 dist
 pdf
 *.spec
+.DS_Store

@@ -6,11 +6,19 @@ import os
 import pypdf
 import re
 import shutil
+import sys
 import tkinter as tk
 
 module_logger = logging.getLogger(__name__)
 
 attachments_directory = 'attachments'
+fontPath = os.path.join('font/', 'DejaVuSans.ttf')
+
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    print('Running in a PyInstaller bundle')
+    fontPath = os.path.join(sys._MEIPASS, fontPath)
+else:
+    print('Running in a normal Python process')
 
 merge_attachments_list = [
     r'.*_DSPSg_TZ_K_signed\.pdf$',
@@ -62,7 +70,8 @@ def convert_txt_to_pdf(attachment):
         pdf_file = attachment.replace('.txt', '.pdf')
         pdf = FPDF()
         pdf.add_page()
-        pdf.add_font('DejaVu', '', os.path.join(os.path.dirname(os.path.abspath(__file__)) + '/font/', 'DejaVuSans.ttf'), uni=True)
+        module_logger.info(f'Unicode font path: {fontPath}')
+        pdf.add_font('DejaVu', '', fontPath, uni=True)
         pdf.set_font('DejaVu', '', 10)
         pdf.write(8, txt.replace('\t', '    '))
         pdf.output(pdf_file)
