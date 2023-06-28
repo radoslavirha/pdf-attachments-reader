@@ -14,7 +14,7 @@ window = tk.Tk()
 module_logger = logging.getLogger(__name__)
 
 attachments_directory = 'attachments'
-fontPath = os.path.join('font/', 'DejaVuSans.ttf')
+fontPath = os.path.join('font', 'DejaVuSans.ttf')
 
 merge_attachments_list = [
     r'.*_DSPSg_TZ_K_signed\.pdf$',
