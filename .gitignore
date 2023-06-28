@@ -3,3 +3,4 @@ dist
 pdf
 *.spec
 .DS_Store
+font/*.pkl
