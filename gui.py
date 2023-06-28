@@ -40,7 +40,7 @@ class TextHandler(logging.StreamHandler):
         self.flush()
         self.textctrl.config(state='disabled')
 
-def close():
+def close_gui():
     window.destroy()
 
 def convert_txt_to_pdf(attachment):
@@ -134,7 +134,7 @@ def init_gui():
     mytext = tk.Text(window, state='disabled')
     mytext.grid(column=0, row=2)
 
-    close_button = tk.Button(window, text='Zavřít', command=close)
+    close_button = tk.Button(window, text='Zavřít', command=close_gui)
     close_button.grid(column=0, row=3)
 
     stderrHandler = logging.StreamHandler()  # no arguments => stderr
